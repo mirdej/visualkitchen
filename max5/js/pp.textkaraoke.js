@@ -23,7 +23,9 @@ function read(path) {
 	
 	// fill line
 	lines[0] = thefile.readline;
-	
+	outlet(o_nextline,'')
+	outlet(o_whitetext,'')
+	outlet(o_redtext,'');
 }
 
 function bang(){
@@ -39,6 +41,7 @@ function bang(){
 		
 		words.length = 0;
 		if (lines[lastline]) words = lines[lastline].split(' ');
+		word_idx=1;
 	}
 	
 	outlet(o_position,1,'position',positions[nextline]);
@@ -49,12 +52,14 @@ function bang(){
 
 	var s = '';
 	for (var i = 0; i < word_idx; i++) {
-		s += words[i];
-		s += ' ';
+		if (words[i]) {
+			s += words[i];
+			s += ' ';
+		}
 	}
 	word_idx++;
 	if (word_idx > words.length) word_idx = 0;
 
-	outlet(o_redtext,s);
+	if (s) {outlet(o_redtext,s);} else {outlet(o_redtext,'');}
 	outlet(o_bang,'bang');
 }
