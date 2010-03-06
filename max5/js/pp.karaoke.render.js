@@ -1,4 +1,4 @@
-outlets = 2;
+outlets = 3;
 
 var textsize = 18;
 var linespacing = 6;
@@ -15,25 +15,35 @@ var currentword;
 var isstart;
 var slides = new Array();
 var currentslide = 0;
+var font = 'Lucida Grande';
 
-
+declareattribute("font");
 declareattribute("textsize");
 declareattribute("linespacing");
 declareattribute("bottom");
 declareattribute("brgb");
 declareattribute("frgb");
 
+function next_slide() {
+	slide (currentslide+1);
+}
+
+
+function prev_slide() {
+	slide (currentslide-1);
+}
+
 function slide(i) {
 	currentword = 0;
+	if (i < 0) i = 0;
 
 	if (slides.length == 0) {error("no slides loded");return;}
 	if (i > (slides.length - 1)){error("only",slides.length,"loaded"); return;}
 	
 	currentslide = i;
-	
-	lines = slides[i];
-	post('slide',i)
-	bang();
+	lines.length = 0;
+	lines = slides[i].slice();
+	outlet(2,'bang');
 }
 
 function read(filepath) {
@@ -60,12 +70,12 @@ function read(filepath) {
 function bang() {
 		outlet (0,'brgb',brgb);
 		outlet (0,'clear');
-		outlet (0,'font','Arial',textsize);
+		outlet (0,'font',font,textsize);
 		outlet (0,'textface','bold');
-	wordrects.length = 0;
-	wordpos.length;
-	currentline = 0;
-	currentword = 0;
+		wordrects.length = 0;
+		wordpos.length;
+		currentline = 0;
+		currentword = 0;
 
 	
 	for (currentline = 0; currentline < lines.length; currentline++) {
@@ -122,7 +132,9 @@ function bang() {
 
 function endoframp() {
 	currentword++;
-	if (currentword >= (wordrects.length)) slide(currentslide + 1);
+	if (currentword >= (wordrects.length)) {
+		next_slide();
+	}
 }
 
 function msg_int(i) {
@@ -144,6 +156,8 @@ if (wordpos.length == 0)return;
 	}
 	
 }
+
+
 
 function anything(){
 }
