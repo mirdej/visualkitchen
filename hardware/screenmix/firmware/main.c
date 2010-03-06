@@ -12,7 +12,7 @@
 //
 // ==============================================================================
 
-#include "gnusb.h"				// the gnusb library: setup and utility functions 
+#include "gnusbcore.h"			// the gnusb library: setup and utility functions 
 
 // HID Report Descriptor
 #include "reportDescriptor.c"
@@ -91,7 +91,7 @@ usbMsgLen_t usbFunctionSetup(u08 data[8])
 // ------------------------------------------------------------------------------
 
 void checkAnlogPorts (void) {
-	unsigned int temp,replymask,replyshift,replybyte;
+	unsigned int temp;
 	
 	if (ad_samplepause != 0xff) {													
 		if (ad_samplepause < ADC_PAUSE) {
@@ -112,7 +112,7 @@ void checkAnlogPorts (void) {
 			
 			
 			if (ad_mux < 6) {
-				unsigned char* pot = usb_reply.faders + ad_mux;
+				unsigned char* pot = usb_reply.faders + (5 - ad_mux);
 				char oldVal = *pot;
 				*pot = ad_values[ad_mux] >> 2;							// copy 8 most significant bits to usb reply 
 				dataChanged |= *pot != oldVal;	
@@ -127,7 +127,7 @@ void checkAnlogPorts (void) {
 
 			} else {
 
-				unsigned char* pot = usb_reply.pot + ad_mux - 6;
+				unsigned char* pot = usb_reply.pots + ad_mux - 6;
 				char oldVal = *pot;
 				*pot = 255 - (ad_values[ad_mux] >> 2);							// copy 8 most significant bits to usb reply 
 				dataChanged |= *pot != oldVal;	
@@ -140,31 +140,6 @@ void checkAnlogPorts (void) {
 	}
 }
 
-// ------------------------------------------------------------------------------
-// - Check PORT B and PORT C
-// ------------------------------------------------------------------------------
-
-void checkDigitalPorts(void) {
-	// copy state of pins to usb reply, only if the port is configured as an input
-	if (DDRB == 0x00) usb_reply[USB_REPLY_PORTB] = PINB;
-	if (DDRC == 0x00) usb_reply[USB_REPLY_PORTC] = PINC;	
-}
-
-
-static void initForUsbConnectivity(void)
-{
-uchar   i = 0;
-
-    usbInit();
-    /* enforce USB re-enumerate: */
-    usbDeviceDisconnect();  /* do this while interrupts are disabled */
-    while(--i){         /* fake USB disconnect for > 250 ms */
-        wdt_reset();
-        _delay_ms(1);
-    }
-    usbDeviceConnect();
-    sei();
-}
 
 
 // ==============================================================================
@@ -177,7 +152,9 @@ int main(void)
 	// PORTA: AD Converter on pA0
 	DDRA 	= 0xf8;		
 	PORTA 	= 0x00;		// make sure pull-up resistors are turned off
-
+	
+	ad_Init();
+	
 	// PORTB: Default Input
 	DDRB 	= 0x00;		// set all pins to input
 	PORTB 	= 0xff;		// make sure pull-up resistors are turned ON
@@ -188,17 +165,19 @@ int main(void)
 	
 	// PORTD: gnusbCore stuff: USB, status leds, jumper
 	initCoreHardware();
-	ledOn(STATUS_LED_GREEN);
+	statusLedOn(StatusLed_Green);
 
 	// ------------------------- Main Loop
 	while(1) {
         wdt_reset();		// reset Watchdog timer - otherwise Watchdog will reset gnusb
-     //   sleepIfIdle();		// go to low power mode if host computer is sleeping
 		usbPoll();			// see if there's something going on on the usb bus
 	
 		checkAnlogPorts();		// see if we've finished an analog-digital conversion
 		//checkDigitalPorts();	// have a look at PORTB and PORTC
 
+		//usb_reply.faders[1] = 127;
+//		dataChanged = 1;
+	
 		if (dataChanged && (usb_reply_next_data == 0)) {
 			usb_reply_next_data = (u08*)&usb_reply;
 			usb_reply_remain = sizeof(usb_reply);
