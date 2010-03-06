@@ -14,6 +14,10 @@
 
 #include "gnusb.h"				// the gnusb library: setup and utility functions 
 
+// HID Report Descriptor
+#include "reportDescriptor.c"
+
+
 // ==============================================================================
 // Constants
 // ------------------------------------------------------------------------------
@@ -33,74 +37,52 @@ static u08		ad_smoothing;	// smoothing level of ad samples (0 -  15)
 static u08		ad_samplepause;	// counts up to ADC_PAUSE between samples
 
 
-static u08		usb_reply[16];	
+static reportStruct 	usb_reply;
+static u08	 			dataChanged = 0;
+static u08*				usb_reply_next_data;
+static s08				usb_reply_remain;
 
 
 // ------------------------------------------------------------------------------
 // - usbFunctionSetup
 // ------------------------------------------------------------------------------
 // this function gets called when the usb driver receives a non standard request
-// that is: our own requests defined in ../common/gnusb_cmds.h
+// that is: our own requests defined in ../common/vstick_cmds.h
 // here's where the magic happens...
 
-uchar usbFunctionSetup(uchar data[8])
+usbMsgLen_t usbFunctionSetup(u08 data[8])
 {
+
+	usbRequest_t* rq = (usbRequest_t*)data;
 	
-	switch (data[1]) {
-	// 								----------------------------  get all values		
-		case GNUSB_CMD_POLL:    
-		
-			usbMsgPtr = usb_reply;
-	        return sizeof(usb_reply);
-    		break;
-    		
-	// 								----------------------------  set smoothing
-		case GNUSB_CMD_SET_SMOOTHING:		
+	switch (rq->bmRequestType & USBRQ_TYPE_MASK) {
+		case USBRQ_TYPE_CLASS: {
+			switch (rq->bRequest) {
 			
-			if (data[2] > 15) ad_smoothing = 15;
-			else ad_smoothing = data[2];
+				case USBRQ_HID_GET_REPORT: {
+					usbMsgPtr = (u08*)&usb_reply;
+					return sizeof(usb_reply);
+					break;
+				}
+			}
 			break;
-	// 								----------------------------  output one byte on PORTB
-		case GNUSB_CMD_SET_PORTB:					
+		}
 		
-			DDRB = 0xff;							// set PORTB to output
-			PORTB = data[2];						// output values
-			usb_reply[USB_REPLY_PORTB] = data[2];	// mirror data in next poll
+		case USBRQ_TYPE_VENDOR: {
+			switch (rq->bRequest) {
+					
+					
+				default:
+					return handleGnusbCoreUsbRequest(data);
+					break;
+						
+			} 
 			break;
-
-	// 								----------------------------  output one byte on  PORTC	    		
-		case GNUSB_CMD_SET_PORTC:					
-		
-			DDRC = 0xff;							// set PORTC to output
-			PORTC = data[2];						// output values
-			usb_reply[USB_REPLY_PORTC] = data[2];	// mirror data in next poll
-			break;
-
-	// 								----------------------------  set PORTB to input  		
-		case GNUSB_CMD_INPUT_PORTB:
-		
-			DDRB = 0x00;
-			break;
-	// 								----------------------------  set PORTC to input  		
-		case GNUSB_CMD_INPUT_PORTC:
-		
-			DDRC = 0x00;
-			break;
-			
-			
-	// 								----------------------------   Start Bootloader for reprogramming the gnusb    		
-		case GNUSB_CMD_START_BOOTLOADER:
-
-			startBootloader();
-			break;
-			
-		default:
-			break;
-				
-	} 
-	
+		}
+	}
 	return 0;
 }
+
 
 
 
@@ -130,11 +112,25 @@ void checkAnlogPorts (void) {
 			
 			
 			if (ad_mux < 6) {
-				usb_reply[5-ad_mux] = ad_values[ad_mux] >> 2;			// copy 8 most significant bits to usb reply 
+				unsigned char* pot = usb_reply.faders + ad_mux;
+				char oldVal = *pot;
+				*pot = ad_values[ad_mux] >> 2;							// copy 8 most significant bits to usb reply 
+				dataChanged |= *pot != oldVal;	
+
 			} else if (ad_mux > 9) {
-					usb_reply[ad_mux] = 255 - (ad_values[ad_mux] >> 2);			// copy 8 most significant bits to usb reply 
+	
+				unsigned char* pot = usb_reply.faders + ad_mux - 4;
+				char oldVal = *pot;
+				*pot = 255 - (ad_values[ad_mux] >> 2);							// copy 8 most significant bits to usb reply 
+				dataChanged |= *pot != oldVal;	
+
+
 			} else {
-				usb_reply[ad_mux] = ad_values[ad_mux] >> 2;
+
+				unsigned char* pot = usb_reply.pot + ad_mux - 6;
+				char oldVal = *pot;
+				*pot = 255 - (ad_values[ad_mux] >> 2);							// copy 8 most significant bits to usb reply 
+				dataChanged |= *pot != oldVal;	
 			}
 			ad_mux = (ad_mux + 1) % 16;									// advance multiplexer index
 			ad_SetChannel(0);											// set mutliplexer channel
@@ -155,6 +151,20 @@ void checkDigitalPorts(void) {
 }
 
 
+static void initForUsbConnectivity(void)
+{
+uchar   i = 0;
+
+    usbInit();
+    /* enforce USB re-enumerate: */
+    usbDeviceDisconnect();  /* do this while interrupts are disabled */
+    while(--i){         /* fake USB disconnect for > 250 ms */
+        wdt_reset();
+        _delay_ms(1);
+    }
+    usbDeviceConnect();
+    sei();
+}
 
 
 // ==============================================================================
@@ -188,7 +198,22 @@ int main(void)
 	
 		checkAnlogPorts();		// see if we've finished an analog-digital conversion
 		//checkDigitalPorts();	// have a look at PORTB and PORTC
+
+		if (dataChanged && (usb_reply_next_data == 0)) {
+			usb_reply_next_data = (u08*)&usb_reply;
+			usb_reply_remain = sizeof(usb_reply);
+			dataChanged = 0;
+		}
 		
+		if (usb_reply_next_data && usbInterruptIsReady()) {
+			usbSetInterrupt(usb_reply_next_data, usb_reply_remain < 8 ? usb_reply_remain : 8);
+			usb_reply_remain -= 8;
+			if (usb_reply_remain <= 0) {
+				usb_reply_next_data = 0;
+			} else {
+				usb_reply_next_data += 8;
+			}
+		}
 	}
 	return 0;
 }

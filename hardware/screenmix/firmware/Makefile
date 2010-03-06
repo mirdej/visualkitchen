@@ -1,5 +1,17 @@
+#============================================================
 # Name: gnusb Makefile
 # www.anyma.ch
+#============================================================
+# Edit the following lines to reflect your paths
+#============================================================
+PATH_TO_GNUSBCORE = ../../development2009/_gnusb_core
+PATH_TO_USBDRV = usbdrv
+PATH_TO_COMMON = ../common
+
+
+HID_DESC_SIZE = `python $(PATH_TO_GNUSBCORE)/firmware/reportDescriptorSize.py`
+DEFINES = -DF_CPU=12000000 -DUSB_CFG_HID_REPORT_DESCRIPTOR_LENGTH=$(HID_DESC_SIZE)#-DDEBUG_LEVEL=2
+
 
 DEVICE     = atmega16
 CLOCK      = 12000000
