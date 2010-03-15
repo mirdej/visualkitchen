@@ -22,10 +22,11 @@ uisp -dprog=stk500 -dserial=`echo /dev/tty.UP*` -dpart=atmega16 --wr_fuse_l=0xef
 #include <util/delay.h>
 
 #include <stdlib.h>
-
-#include "../../common/vmix.h"		
-
 #include "usbdrv/usbdrv.h"
+
+#include "vmix_commands.h"		
+#include "gnusbcore.h"			// the gnusb library: setup and utility functions 
+#include "reportDescriptor.c"
 
 #define SPI_PAUSE 		20
 #define	SPI_TIMEOUT 	200
@@ -41,9 +42,11 @@ uisp -dprog=stk500 -dserial=`echo /dev/tty.UP*` -dpart=atmega16 --wr_fuse_l=0xef
 
 //----- Globals ---------------------------------------------------------
 
-static u08			adc_mux,ad_smoothing;
+static u08			ad_mux;			// current ad input channel
+static u08			ad_samplepause;	// counts up to ADC_PAUSE between samples
+static u08			ad_smoothing;
 static u08			values[54];	
-static u16			ad_values[6];
+static unsigned short			ad_values[6];
 
 static u08			txIndex,txLen,rxIndex;
 static u08			rxBuffer[PACKETSIZE];
@@ -53,6 +56,12 @@ static u08			spi_state,spi_current_slave, spi_command,spi_queued_command,spi_que
 
 static u08			samplepause;
 static u08			usb_state,usb_len,usb_index;
+
+
+static reportStruct 	usb_reply;
+static u08	 			dataChanged = 0;
+static u08*				usb_reply_next_data;
+static s08				usb_reply_remain;
 
 
 // ------------------------------------------------------------------------------
@@ -81,17 +90,7 @@ void init(void){
 	DDRA = 0x00;		// set all port A pins to input -- AD Converter
 	PORTA = 0x00;		// make sure pull-up resistors are turned off
 	
-// --------------------- Init AD Converter
-
-	sbi(ADCSRA, ADEN);				// enable ADC (turn on ADC power)
-	cbi(ADCSRA, ADATE);				// default to single sample convert mode
-									// Set ADC-Prescaler (-> precision vs. speed)
-	ADCSRA = ((ADCSRA & ~ADC_PRESCALE_MASK) | ADC_PRESCALE_DIV64);
-	sbi(ADMUX,REFS0);cbi(ADMUX,REFS1);			// Set ADC Reference Voltage to AVCC
-				
-	cbi(ADCSRA, ADLAR);				// set to right-adjusted result
-	cbi(ADCSRA, ADIE);				// disable ADC interrupts
-	
+	ad_Init();	
 	ad_smoothing = 3;
 
 	
@@ -99,33 +98,14 @@ void init(void){
 	
 	DDRB = 0xBF;		// 1011 1111 - All outputs except MISO (bits 0-4: slave select)
 	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR1)|(0<<SPR0); 		//  enable SPI in Master Mode, clk = fcpu/64 
-	
 	PORTB |= 0x1F;		// 0001 1111 - All CS High
 
-	
-	//PORTC: USB & LCD
-	
-	//DDRC = 0xff;	// all outputs (-> USB reset)
-	PORTC = 0x00;	// all low
-	
-		//PORTD: USB Interrupt, UART
-	//DDRD =  0xf2;	// 1111 0010  all outputs except interrupts & RX
 	
     initForUsbConnectivity();
 	
 	for (t=0;t<50;t++) values[t]=t*4;
 	for (t=0;t<PACKETSIZE;t++) txBuffer[t]=255-(t*12);  //fill rxBuffer with data for debugging
 	spi_state = SPI_STATE_BUSY;
-	
-	// set smoothing of first slave to 0
-	
-	/*PORTB &= ~(1 << 5);
-	SPDR = REQ_SET_SMOOTH;
-	while (!(SPSR & (1<<SPIF))) {}
-	SPDR = 0;
-	while (!(SPSR & (1<<SPIF))) {}
-	PORTB |= 0x1F; 					// deselect slaves
-	*/
 	
 	SPDR = REQ_GET_VALUES;			// start polling
 }
@@ -134,9 +114,9 @@ void init(void){
 // - Start Bootloader
 // ------------------------------------------------------------------------------
 // dummy function doing the jump to bootloader section (Adress 1C00 on Atmega16)
-void (*jumpToBootloader)(void) = (void (*)(void))0x1C00; __attribute__ ((unused))
+void (*jumpToVmixBootloader)(void) = (void (*)(void))0x1C00; __attribute__ ((unused))
 
-void startBootloader(void) {
+void startVmixBootloader(void) {
 		
 		
 		MCUCSR &= ~(1 << PORF);			// clear power on reset flag
@@ -149,7 +129,7 @@ void startBootloader(void) {
 		ADCSRA &= ~(( 1 << ADIE) | ( 1 << ADEN));	// disable ADC interrupts
 													// disable ADC (turn off ADC power)
 
-		jumpToBootloader();
+		jumpToVmixBootloader();
 }
 
 
@@ -158,7 +138,7 @@ void startBootloader(void) {
 // - Check SPI
 // ------------------------------------------------------------------------------
 void checkSPI (void){
-	u16 i;
+	unsigned short i;
 	switch (spi_state) {
 	
 	case SPI_STATE_BUSY:
@@ -202,9 +182,25 @@ void checkSPI (void){
 		// Handle received messages
 		if (spi_command == REQ_GET_VALUES) {
 			if ((rxBuffer[0] == TX_HEAD_1) & (rxBuffer[1] == TX_HEAD_2)) {
-					for(i=0;i<9;i++) {
-						values[9 * spi_current_slave + i] = rxBuffer[i+2];
+					
+					unsigned char* pot;
+					pot = usb_reply.faders + spi_current_slave;
+					char oldVal = *pot;
+					*pot = rxBuffer[2];
+					dataChanged |= *pot != oldVal;	
+
+					for(i=1;i<8;i++) {				
+						pot = usb_reply.pots + i - 1 + (spi_current_slave * 7);
+						oldVal = *pot;
+						*pot = rxBuffer[2+i];
+						dataChanged |= *pot != oldVal;							
 					}
+					
+					unsigned short buttonmask = ~(0x07 << ((3 * spi_current_slave)-1));
+					unsigned short oldbuttons = usb_reply.buttons;
+					usb_reply.buttons &= buttonmask;
+					usb_reply.buttons |= (rxBuffer[10] << ((3 * spi_current_slave )-1));
+					dataChanged |= oldbuttons != usb_reply.buttons;							
 			}
 		}
 		
@@ -252,88 +248,98 @@ void checkSPI (void){
 	}
 }
 
+
 // ------------------------------------------------------------------------------
 // - CHECk ADC and update values
 // ------------------------------------------------------------------------------
 
 void checkAdc (void){
+	unsigned char* pot;
 	unsigned int temp;
 	
-	if (!(ADCSRA & (1 << ADSC))) {								// see if AD-Conversion is complete
-			if (samplepause < ADC_PAUSE) {
-				samplepause++ ;
-			} else {			
-			
-			temp = (ADCL | ADCH << 8) ;		// read ADC ( 10 bits);
-		//	ad_values[adc_mux] = (ad_values[adc_mux] * ad_smoothing + temp) / (ad_smoothing + 1);
-			temp = temp >>2;
-		//	temp = ad_values[adc_mux] >> 2;
-			
-			if (temp > 0xFF) temp = 0xFF;
-			
-			if (adc_mux < 3) temp = 255 - temp;			//wired the wrong way round, stupid...
-
-			values[45 + adc_mux] = temp;
-			
-			adc_mux = (adc_mux + 1) % 6;									// start conversion on next channel
-			ADMUX = (ADMUX & ~ADC_MUX_MASK) | (adc_mux & ADC_MUX_MASK);		// set channel
-			
-			ADCSRA |= (1 << ADIF);			// clear hardware "conversion complete" flag 
-			ADCSRA |= (1 << ADSC);			// start conversion
+	if (ad_samplepause != 0xff) {													
+		if (ad_samplepause < ADC_PAUSE) {
+			ad_samplepause++;								// advance pause counter
+		} else {
+			ad_StartConversion();							// start a new conversion
+			ad_samplepause = 0xff;							// indicate we're waiting for a result now
 		}
-	} else { samplepause = 0; }
+		
+	} else {
+
+		if ( ad_ConversionComplete() ) {								// see if AD-Conversion is complete
+				
+			temp = ad_Read10bit();										// read ADC (10 bits);		
+			
+			// basic low pass filter
+			ad_values[ad_mux] = (ad_values[ad_mux] * ad_smoothing + temp) / (ad_smoothing + 1);
+			
+			char oldVal = *pot;
+
+			if (ad_mux < 3) {
+				pot = usb_reply.faders + 5 + ad_mux;
+				*pot = 255 - (ad_values[ad_mux] >> 2);							// copy 8 most significant bits to usb reply 
+
+			} else {
+				pot = usb_reply.pots + 32 + ad_mux;
+				*pot = (ad_values[ad_mux] >> 2);							// copy 8 most significant bits to usb reply 
+}
+			
+				dataChanged |= *pot != oldVal;	
+
+	
+			ad_mux = (ad_mux + 1) % 6;									// advance multiplexer index
+			ad_SetChannel(ad_mux);										// set mutliplexer channel
+			ad_samplepause = 0;											// start counting up to ADC_PAUSE in order to let the input settle a bit 
+		}
+	}
 }
 
-/* ------------------------------------------------------------------------- */
-/* ----------------------------- USB interface ----------------------------- */
-/* ------------------------------------------------------------------------- */
-uchar   usbFunctionSetup(uchar data[8]){
+// ------------------------------------------------------------------------------
+// - usbFunctionSetup
+// ------------------------------------------------------------------------------
+// this function gets called when the usb driver receives a non standard request
+// that is: our own requests defined in ../common/videobass_cmds.h
+// here's where the magic happens...
 
+usbMsgLen_t usbFunctionSetup(u08 data[8])
+{
 
-    if(data[1] == cmd_GET){       /* GET ALL VALUES*/
-		usbMsgPtr = values;
-		return sizeof(values);
-    }
+	usbRequest_t* rq = (usbRequest_t*)data;
 	
-	if(data[1] == cmd_STICK){       /* Stick values to pots */
-	   
-	   	spi_queued_command = REQ_STICK;
-        return 0;
-    }
-    
-	if(data[1] == cmd_PRESET_STORE){       /* Stick values to pots */
-	   
-	   	spi_queued_command = REQ_PRESET_STORE;
-	   	spi_queued_param = data[2];
-	   	return 0;
-    }
-
-	if(data[1] == cmd_PRESET_LOAD){       /* Stick values to pots */
-	   
-	   	spi_queued_command = REQ_PRESET_LOAD;
-	   	spi_queued_param = data[2];
-        return 0;
-    }
-    
-	
-	if(data[1] == cmd_SET_VALUE){       /* Set pot value */
-
-	//	PORTB |= 0x1F; 					// deselect slaves
-	//	spi_state = SPI_STATE_DONE;
-		spi_command = REQ_INVALID; 			// invalidate currently running spi transmission
-		usb_state = cmd_SET_VALUE;			// while waiting for the data
-		usb_len = data[2];
-		return 0xff;
-        
-    }
-    
-    if(data[1] == cmd_START_BOOTLOADER) {
-
-			startBootloader();
+	switch (rq->bmRequestType & USBRQ_TYPE_MASK) {
+		case USBRQ_TYPE_CLASS: {
+			switch (rq->bRequest) {
+			
+				case USBRQ_HID_GET_REPORT: {
+					usbMsgPtr = (u08*)&usb_reply;
+					return sizeof(usb_reply);
+					break;
+				}
+			}
+			break;
+		}
+		
+		case USBRQ_TYPE_VENDOR: {
+			switch (rq->bRequest) {
+					
+			// 								----------------------------  set smoothing
+				case cmd_START_BOOTLOADER:		
+					
+					startVmixBootloader();
+					break;
+								
+				default:
+					return handleGnusbCoreUsbRequest(data);
+					break;
+						
+			} 
+			break;
+		}
 	}
-
 	return 0;
 }
+
 
 // ------------------------------------------------------------------------------
 // - usbFunctionWrite
@@ -374,6 +380,21 @@ int main(void)
 		checkAdc();
 		checkSPI();
 		
+		if (dataChanged && (usb_reply_next_data == 0)) {
+			usb_reply_next_data = (u08*)&usb_reply;
+			usb_reply_remain = sizeof(usb_reply);
+			dataChanged = 0;
+		}
+		
+		if (usb_reply_next_data && usbInterruptIsReady()) {
+			usbSetInterrupt(usb_reply_next_data, usb_reply_remain < 8 ? usb_reply_remain : 8);
+			usb_reply_remain -= 8;
+			if (usb_reply_remain <= 0) {
+				usb_reply_next_data = 0;
+			} else {
+				usb_reply_next_data += 8;
+			}
+		}
 	}
 	return 0;
 }
