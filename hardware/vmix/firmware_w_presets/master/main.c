@@ -99,6 +99,7 @@ void init(void){
 
 	//PORTD: USB Interrupt, UART
 	DDRD =  0xf2;	// 1111 0010  all outputs except interrupts & RX
+	PORTD |= (1 << 3);  //pull up usb- for device connect
 	
 	usbInit();
 	sei();
