@@ -4,7 +4,7 @@
 
 
 DEVICE     = atmega16
-CLOCK      = 12000000
+F_CPU      = 12000000
 PROGRAMMER = -c usbasp -P usb
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 FUSEOPT = -U hfuse:w:0xc8:m -U lfuse:w:0xef:m
@@ -12,7 +12,7 @@ FUSEOPT = -U hfuse:w:0xc8:m -U lfuse:w:0xef:m
 
 # Choose your favorite programmer and interface above.
 
-COMPILE = avr-gcc -Wall -Os -Iusbdrv -I. -mmcu=$(DEVICE) #-DDEBUG_LEVEL=2
+COMPILE = avr-gcc -Wall -Os -Iusbdrv -I. -mmcu=$(DEVICE) -DF_CPU=$(F_CPU) #-DDEBUG_LEVEL=2
 # NEVER compile the final product with debugging! Any debug output will
 # distort timing so that the specs can't be met.
 

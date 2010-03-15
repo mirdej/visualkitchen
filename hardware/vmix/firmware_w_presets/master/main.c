@@ -19,6 +19,8 @@ uisp -dprog=stk500 -dserial=`echo /dev/tty.UP*` -dpart=atmega16 --wr_fuse_l=0xef
 #include <avr/interrupt.h>		// include interrupt support
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>			// include watchdog timer support
+#include <util/delay.h>
+
 #include <stdlib.h>
 
 #include "../../common/vmix.h"		
@@ -52,9 +54,25 @@ static u08			spi_state,spi_current_slave, spi_command,spi_queued_command,spi_que
 static u08			samplepause;
 static u08			usb_state,usb_len,usb_index;
 
+
 // ------------------------------------------------------------------------------
 // - Init
 // ------------------------------------------------------------------------------
+static void initForUsbConnectivity(void)
+{
+uchar   i = 0;
+
+    usbInit();
+    /* enforce USB re-enumerate: */
+    usbDeviceDisconnect();  /* do this while interrupts are disabled */
+    while(--i){         /* fake USB disconnect for > 250 ms */
+        wdt_reset();
+        _delay_ms(1);
+    }
+    usbDeviceConnect();
+    sei();
+}
+
 void init(void){
 	uchar	n, t;
 
@@ -87,23 +105,13 @@ void init(void){
 	
 	//PORTC: USB & LCD
 	
-	DDRC = 0xff;	// all outputs (-> USB reset)
+	//DDRC = 0xff;	// all outputs (-> USB reset)
 	PORTC = 0x00;	// all low
 	
-	t = 0;
-	while(--t){     /* USB Reset by device only required on Watchdog Reset */
-		n = 0;
-		while(--n); /* delay >10ms for USB reset */
-	}
-    DDRC = 0xfc;    /* 1111 1100 bin: remove USB reset condition */
-
-	//PORTD: USB Interrupt, UART
-	DDRD =  0xf2;	// 1111 0010  all outputs except interrupts & RX
-	PORTD |= (1 << 3);  //pull up usb- for device connect
+		//PORTD: USB Interrupt, UART
+	//DDRD =  0xf2;	// 1111 0010  all outputs except interrupts & RX
 	
-	usbInit();
-	sei();
-	
+    initForUsbConnectivity();
 	
 	for (t=0;t<50;t++) values[t]=t*4;
 	for (t=0;t<PACKETSIZE;t++) txBuffer[t]=255-(t*12);  //fill rxBuffer with data for debugging
