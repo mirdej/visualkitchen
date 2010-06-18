@@ -84,16 +84,11 @@ function screen_num(i) {
 
 function readstate() {
 	f = new File(settingsfile);
+	f.position = 0;
 	if (f.isopen) {
-		var s;
-			for (var i = 0;i<4;i++){
-				s = f.readline();
-				corners[i][0]= s.split(' ')[0];
-				corners[i][1]= s.split(' ')[1];
-			}
-		f.close;
+		s = f.readline();
+		corners = eval('(' + s + ')');
 		bang();
-
 	} else {
 		reset_all();
 		savestate();
@@ -102,8 +97,9 @@ function readstate() {
 function savestate() {
 	f = new File(settingsfile,'write');
 	f.position = 0;
-	for (var i = 0;i<4;i++){
+	/*for (var i = 0;i<4;i++){
 			f.writeline(corners[i][0] + ' ' +corners[i][1]);
-		}
+		}*/
+		f.writeline(corners.toSource());
 	f.close;
 }
