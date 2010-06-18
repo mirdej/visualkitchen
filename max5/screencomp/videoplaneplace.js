@@ -1,6 +1,7 @@
 var MAX_DELAY = 150;
 outlets = 1;
 
+
 function filmstrip(spread,size,delay) {
 	for (var i = 1; i < 13; i++) {
 		outlet(0,'poly~.'+i+'::position',((i -.5) / 12)*spread - spread/2,0.);
@@ -35,4 +36,10 @@ function randomDelays () {
 function bigOne(size,x,voff) {
 		outlet(0,'poly~.12::scale',size);
 		outlet(0,'poly~.12::position',x,voff);
+}
+
+function moveall(x,y) {
+	for (var i = 1; i < 13; i++) {
+		
+	}
 }
