@@ -1,9 +1,9 @@
 {
 	"patcher" : 	{
 		"fileversion" : 1,
-		"rect" : [ 58.0, 259.0, 1345.0, 410.0 ],
+		"rect" : [ 26.0, 44.0, 1345.0, 410.0 ],
 		"bglocked" : 0,
-		"defrect" : [ 58.0, 259.0, 1345.0, 410.0 ],
+		"defrect" : [ 26.0, 44.0, 1345.0, 410.0 ],
 		"openrect" : [ 0.0, 0.0, 0.0, 0.0 ],
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -18,6 +18,19 @@
 		"enablehscroll" : 1,
 		"enablevscroll" : 1,
 		"boxes" : [ 			{
+				"box" : 				{
+					"maxclass" : "newobj",
+					"text" : "s hide_windows",
+					"numoutlets" : 0,
+					"fontsize" : 12.0,
+					"patching_rect" : [ 56.0, 210.0, 95.0, 20.0 ],
+					"id" : "obj-25",
+					"fontname" : "Arial",
+					"numinlets" : 1
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"maxclass" : "newobj",
 					"text" : "delay 200",
@@ -131,7 +144,7 @@
 					"numoutlets" : 2,
 					"fontsize" : 12.0,
 					"outlettype" : [ "float", "bang" ],
-					"patching_rect" : [ 419.0, 193.0, 50.0, 20.0 ],
+					"patching_rect" : [ 415.0, 193.0, 50.0, 20.0 ],
 					"id" : "obj-43",
 					"fontname" : "Arial",
 					"numinlets" : 1
@@ -958,6 +971,15 @@
 		"lines" : [ 			{
 				"patchline" : 				{
 					"source" : [ "obj-23", 0 ],
+					"destination" : [ "obj-25", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-23", 0 ],
 					"destination" : [ "obj-19", 0 ],
 					"hidden" : 0,
 					"midpoints" : [  ]
@@ -1284,7 +1306,7 @@
 					"source" : [ "obj-9", 1 ],
 					"destination" : [ "obj-13", 0 ],
 					"hidden" : 0,
-					"midpoints" : [ 176.5, 154.0, 176.5, 180.0, 285.5, 180.0 ]
+					"midpoints" : [ 176.5, 178.5, 285.5, 178.5 ]
 				}
 
 			}
