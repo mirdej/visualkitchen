@@ -4,9 +4,9 @@ var planes = new Array();
 
 function filmstrip(spread,size,delay) {
 	for (var i = 0; i < MAX_PLANES; i++) {
-		planes[i].position = [((i +.5) / 12)*spread - spread/2 ,	0.];
+		planes[i].position = [(i / MAX_PLANES)*spread - spread/2. ,	0.];
 		planes[i].scale = size;		
-		planes[i].delay = delay;
+		planes[i].delay = i*delay;
 		planes[i].blend = 1.;
 		planes[i].enable = 1;
 	}
