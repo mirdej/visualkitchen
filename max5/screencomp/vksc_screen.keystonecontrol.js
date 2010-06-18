@@ -2,6 +2,7 @@ var fact = 1.
 var matrix_w = 1024;
 var matrix_h = 768;
 var corners = new Array();
+var	settingsfile = "";
 
 outlets = 2;
 
@@ -61,9 +62,6 @@ function slow(n) {
     else fact = 1;
 }
 
-function dump() {
-    outlet(1,corners[0],corners[1],corners[2],corners[3])
-}
 
 function set(a,b,c,d,e,f,g,h) {
     corners[0] = [a,b];
@@ -72,4 +70,40 @@ function set(a,b,c,d,e,f,g,h) {
     corners[3] = [g,h];
     bang();
     
+}
+
+function preferences (path) {
+	settingsfile = path;
+	outlet(1,'bang');
+}
+
+function screen_num(i) {
+	settingsfile += '/keystone_'+i+'.txt';
+	readstate();
+}
+
+function readstate() {
+	f = new File(settingsfile);
+	if (f.isopen) {
+		var s;
+			for (var i = 0;i<4;i++){
+				s = f.readline();
+				corners[i][0]= s.split(' ')[0];
+				corners[i][1]= s.split(' ')[1];
+			}
+		f.close;
+		bang();
+
+	} else {
+		reset_all();
+		savestate();
+	}
+}
+function savestate() {
+	f = new File(settingsfile,'write');
+	f.position = 0;
+	for (var i = 0;i<4;i++){
+			f.writeline(corners[i][0] + ' ' +corners[i][1]);
+		}
+	f.close;
 }
