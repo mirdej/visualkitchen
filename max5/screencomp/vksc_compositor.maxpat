@@ -17,6 +17,34 @@
 		"imprint" : 0,
 		"boxes" : [ 			{
 				"box" : 				{
+					"maxclass" : "number",
+					"patching_rect" : [ 548.0, 133.0, 50.0, 20.0 ],
+					"fontsize" : 12.0,
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"id" : "obj-30",
+					"outlettype" : [ "int", "bang" ],
+					"fontname" : "Arial"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"maxclass" : "message",
+					"text" : "poly~.6::source $1",
+					"patching_rect" : [ 556.0, 177.0, 109.0, 18.0 ],
+					"fontsize" : 12.0,
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"presentation_rect" : [ 556.0, 177.0, 0.0, 0.0 ],
+					"id" : "obj-20",
+					"outlettype" : [ "" ],
+					"fontname" : "Arial"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"maxclass" : "newobj",
 					"text" : "r to_pattrstorage",
 					"patching_rect" : [ 1016.0, 279.0, 99.0, 20.0 ],
@@ -454,8 +482,8 @@
 						"boxes" : [ 							{
 								"box" : 								{
 									"maxclass" : "newobj",
-									"text" : "jit.gl.texture composition @name sk_text",
-									"patching_rect" : [ 304.0, 263.0, 226.0, 20.0 ],
+									"text" : "jit.gl.texture composition @name sk_tex @dim 360 288",
+									"patching_rect" : [ 304.0, 263.0, 304.0, 20.0 ],
 									"fontsize" : 12.0,
 									"numinlets" : 1,
 									"numoutlets" : 2,
@@ -691,8 +719,8 @@
  ],
 						"lines" : [ 							{
 								"patchline" : 								{
-									"source" : [ "obj-78", 0 ],
-									"destination" : [ "obj-3", 0 ],
+									"source" : [ "obj-4", 0 ],
+									"destination" : [ "obj-7", 0 ],
 									"hidden" : 0,
 									"midpoints" : [  ]
 								}
@@ -700,8 +728,8 @@
 							}
 , 							{
 								"patchline" : 								{
-									"source" : [ "obj-4", 0 ],
-									"destination" : [ "obj-7", 0 ],
+									"source" : [ "obj-78", 0 ],
+									"destination" : [ "obj-3", 0 ],
 									"hidden" : 0,
 									"midpoints" : [  ]
 								}
@@ -1336,6 +1364,7 @@
 						"toolbarvisible" : 1,
 						"boxanimatetime" : 200,
 						"imprint" : 0,
+						"visible" : 1,
 						"boxes" : [ 							{
 								"box" : 								{
 									"maxclass" : "number",
@@ -2026,6 +2055,24 @@
 			}
  ],
 		"lines" : [ 			{
+				"patchline" : 				{
+					"source" : [ "obj-30", 0 ],
+					"destination" : [ "obj-20", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"source" : [ "obj-20", 0 ],
+					"destination" : [ "obj-2", 0 ],
+					"hidden" : 0,
+					"midpoints" : [  ]
+				}
+
+			}
+, 			{
 				"patchline" : 				{
 					"source" : [ "obj-12", 0 ],
 					"destination" : [ "obj-2", 0 ],

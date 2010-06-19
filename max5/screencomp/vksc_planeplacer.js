@@ -39,7 +39,8 @@ function vPlane(n) {
 	this.scale =  .5;
 	this.delay =  2;
 	this.blend = 1;
-	this.enable = 1;
+	this.source = 1;
+	this.flip = [0 , 0]
 	
 	this.postPos = function() {
 		outlet(0,'poly~.'+this.index+'::position',this.position);
@@ -53,8 +54,11 @@ function vPlane(n) {
 	this.postBlend = function() {
 		outlet(0,'poly~.'+this.index+'::blend',this.blend);
 	}
-	this.postEnable = function() {
-		outlet(0,'poly~.'+this.index+'::enable',this.enable);
+	this.postSource = function() {
+		outlet(0,'poly~.'+this.index+'::source',this.source);
+	}
+	this.postFlip = function() {
+		outlet(0,'poly~.'+this.index+'::flip',this.flip);
 	}
 	
 	this.postAll = function() {
@@ -62,7 +66,8 @@ function vPlane(n) {
 		this.postScale();
 		this.postDelay();
 		this.postBlend();
-		this.postEnable();
+		this.postSource();
+		this.postFlip();
 	}
 }
 
