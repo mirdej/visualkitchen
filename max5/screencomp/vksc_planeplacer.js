@@ -1,6 +1,20 @@
 var MAX_PLANES = 12;
+var MAX_DELAY = 75;
 var planes = new Array();
+var delay_fact = 1;
 
+function master_delay(i) {
+	delay_fact = i/ 15;
+	for (var i = 1; i < MAX_PLANES; i++) {
+		planes[i].postDelay();
+	}
+}
+
+function set_delay(i,d) {
+	i--;
+	planes[i].delay = d/8;
+	planes[i].postDelay();
+}
 
 function filmstrip(spread,size,delay) {
 	for (var i = 0; i < MAX_PLANES; i++) {
@@ -30,6 +44,12 @@ function bang() {
 	}
 }
 
+function randomDelays () {	
+	for (var i = 1; i < MAX_PLANES; i++) {
+		planes[i].delay = Math.random()*MAX_DELAY;
+		planes[i].postDelay();
+	}
+}
 
 
 
@@ -49,7 +69,7 @@ function vPlane(n) {
 		outlet(0,'poly~.'+this.index+'::scale',this.scale);
 	}
 	this.postDelay = function() {
-		outlet(0,'poly~.'+this.index+'::delay',this.delay);
+		outlet(0,'poly~.'+this.index+'::delay',this.delay * delay_fact);
 	}
 	this.postBlend = function() {
 		outlet(0,'poly~.'+this.index+'::blend',this.blend);
