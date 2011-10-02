@@ -7,6 +7,10 @@ cp ../shaders/*.jxs VisualKitchen.app/Contents/Resources/shaders
 cp /Applications/Max5/Cycling\ \'74/jitter-shaders/composite/co.normal.jxs VisualKitchen.app/Contents/Resources/shaders/
 cp /Applications/Max5/Cycling\ \'74/jitter-shaders/color/cc.brcosa.jxs VisualKitchen.app/Contents/Resources/shaders/
 cp /Applications/Max5/Cycling\ \'74/jitter-shaders/shared/glsl/sh.passthru.xform.vp.glsl VisualKitchen.app/Contents/Resources/shaders/
+cp /Applications/Max5/Cycling\ \'74/jitter-shaders/shared/glsl/sh.passthrudim.vp.glsl VisualKitchen.app/Contents/Resources/shaders/
+cp /Applications/Max5/Cycling\ \'74/jitter-shaders/texdisplace/td.rota.jxs VisualKitchen.app/Contents/Resources/shaders/
+cp /Applications/Max5/Cycling\ \'74/jitter-shaders/convolution/cf.gaussian.2p.jxs VisualKitchen.app/Contents/Resources/shaders/
+
 
 # COPY HID Usage tables for hi.in
 cp ../mxo/hi.tools/hi.usage* VisualKitchen.app/Contents/Resources/
