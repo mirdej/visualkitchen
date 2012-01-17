@@ -19,7 +19,7 @@
 ################################################################################
 
 NAME ?= VisualKitchen-App
-VERSION ?= 4.0
+include version.txt
 
 SOURCE_DIR ?= .
 SOURCE_FILES ?= VisualKitchen.app ReadMe.rtf License.txt

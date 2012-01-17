@@ -27,3 +27,5 @@ cp -R /Applications/Max5/Cycling\ \'74/java/classes VisualKitchen.app/Contents/
 cp vk.icon.icns VisualKitchen.app/Contents/Resources/
 cp Info.plist VisualKitchen.app/Contents/
 
+echo --------------------- Udpdating version --------------------
+perl update_version.pl
