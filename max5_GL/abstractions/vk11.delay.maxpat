@@ -77,7 +77,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_25",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_25",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 198.0, 650.0, 266.0, 17.0 ],
@@ -350,7 +350,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_0",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_0",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 139.0, 385.0, 260.0, 17.0 ],
@@ -364,7 +364,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_1",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_1",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 179.0, 405.0, 260.0, 17.0 ],
@@ -378,7 +378,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_2",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_2",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 219.0, 425.0, 260.0, 17.0 ],
@@ -392,7 +392,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_3",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_3",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 259.0, 445.0, 260.0, 17.0 ],
@@ -406,7 +406,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_4",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_4",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 299.0, 465.0, 260.0, 17.0 ],
@@ -420,7 +420,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_5",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_5",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 339.0, 485.0, 260.0, 17.0 ],
@@ -434,7 +434,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_6",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_6",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 379.0, 505.0, 260.0, 17.0 ],
@@ -448,7 +448,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_7",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_7",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 419.0, 525.0, 260.0, 17.0 ],
@@ -462,7 +462,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_8",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_8",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 459.0, 545.0, 260.0, 17.0 ],
@@ -476,7 +476,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_9",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_9",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 499.0, 565.0, 260.0, 17.0 ],
@@ -490,7 +490,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_10",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_10",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 539.0, 585.0, 266.0, 17.0 ],
@@ -504,7 +504,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_11",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_11",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 579.0, 605.0, 266.0, 17.0 ],
@@ -518,7 +518,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_12",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_12",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 619.0, 625.0, 266.0, 17.0 ],
@@ -532,7 +532,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_13",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_13",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 659.0, 645.0, 266.0, 17.0 ],
@@ -546,7 +546,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_14",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_14",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 699.0, 665.0, 266.0, 17.0 ],
@@ -560,7 +560,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_15",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_15",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 739.0, 685.0, 266.0, 17.0 ],
@@ -574,7 +574,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_16",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_16",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 779.0, 705.0, 266.0, 17.0 ],
@@ -588,7 +588,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_17",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_17",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 819.0, 725.0, 266.0, 17.0 ],
@@ -602,7 +602,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_18",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_18",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 859.0, 745.0, 266.0, 17.0 ],
@@ -616,7 +616,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_19",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_19",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 899.0, 765.0, 266.0, 17.0 ],
@@ -630,7 +630,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_20",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_20",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 939.0, 785.0, 266.0, 17.0 ],
@@ -644,7 +644,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_21",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_21",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 979.0, 805.0, 266.0, 17.0 ],
@@ -658,7 +658,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_22",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_22",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 1019.0, 825.0, 266.0, 17.0 ],
@@ -672,7 +672,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_23",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_23",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 1059.0, 845.0, 266.0, 17.0 ],
@@ -686,7 +686,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "newobj",
-					"text" : "jit.gl.texture #1 @name #0_delay_24",
+					"text" : "jit.gl.texture #1 @flip 0 @name #0_delay_24",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"patching_rect" : [ 1099.0, 865.0, 266.0, 17.0 ],
