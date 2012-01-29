@@ -1,9 +1,6 @@
 // ==============================================================================
 // main.c
-// firmware for a MIDI device based on the gnusb - OPEN SOURCE USB SENSOR BOX
-// with code adapted from  	V-USB MIDI device on Low-Speed USB
-//							* Author: Martin Homuth-Rosemann
-//							http://cryptomys.de/horo/V-USB-MIDI/index.html
+// firmware for a HID device based on the gnusb - OPEN SOURCE USB SENSOR BOX
 //
 
 // License:
@@ -11,9 +8,9 @@
 // published under an own licence based on the GNU General Public License (GPL).
 // gnusb is also distributed under this enhanced licence. See Documentation.
 //
-// target-cpu: ATMega16 @ 12MHz
+// target-cpu: ATMega644 @ 20MHz
 // created 2007-01-28 Michael Egger me@anyma.ch
-// version 2011-10-23 Michael Egger me@anyma.ch
+// version 2012-01-28 Michael Egger me@anyma.ch
 //
 // ==============================================================================
 
@@ -57,11 +54,6 @@
 static unsigned int		ad_values[MIDI_CONTROL_OUT_COUNT];			// sampled analog input values
 static unsigned char 	ad_idx;										// sensor currently being sampled
 
-static unsigned char	ctl_values[MIDI_CONTROL_OUT_COUNT];			// midi controller values ( = 7bit version of ad_values)
-static unsigned char	ctl_values_sent[MIDI_CONTROL_OUT_COUNT];	// controller values that were sent over midi (control change)
-
-static unsigned char	key_values[MIDI_NOTE_OUT_COUNT];			// sampled switches/keys
-static unsigned char	key_values_sent[MIDI_NOTE_OUT_COUNT];		// keys that were sent over midi (note out)
 
 
 static unsigned char	 			dataChanged = 0;
@@ -74,13 +66,28 @@ static unsigned char             rx_buffer[10];
 static unsigned char    sensor_idx;
 static unsigned int		sensor_buffer[4];
 static unsigned int		sensor_values[4];
-static unsigned int		sensors_sent[4];
-static unsigned int		sensors_centers[4];
 
-static double angles[4];
-static double x,y,z,pan,tilt;
+static unsigned int 	angle;
+static unsigned int 	last_rz;
+static float 			angle_f;
+static float	 		autorotate;
 
-static double z_sent;
+
+static unsigned int 		button_debounce;
+static unsigned char		do_hand_rotate;
+static unsigned char	button_state;
+
+void update_angle(void) {
+   if (angle_f < 0.) angle_f += 65535;
+   if (angle_f > 65534) angle_f -= 65535; 
+   angle = floor(angle_f);
+   angle = angle >> 2;
+   
+   if (usb_reply.angle != angle) {
+	  usb_reply.angle = angle;
+	  dataChanged = 1;
+   }
+}
 
 // ------------------------------------------------------------------------------
 // - Check ADC and update ad_values
@@ -97,44 +104,54 @@ void checkAnalogPorts (void) {
 			dataChanged = 1;
 		}
 		
-		ad_idx = (ad_idx + 1) % 3;								// advance multiplexer index up to maximum channels
-		adSetChannel(ad_idx);										// set mutliplexer channel
+		if (ad_idx == 0) {
+					signed int a;
+					a = ad_values[ad_idx];
+					if (a < 500) a -= 500;
+					else if (a > 524) a -= 524;
+					else a = 0;
+					
+					angle_f += ( (float) a / 10.);
+
+					update_angle();
+					}
+		
+		ad_idx = (ad_idx + 1) % 4;								// advance multiplexer index up to maximum channels
+		adSetChannel(ad_idx + 4);										// set mutliplexer channel
 		adStartConversion();										// start a new AD conversion for next channel
 	}
 }
 
 // ------------------------------------------------------------------------------
-// - Check PORT C
+// - Check Buttons on PortA1..3
 // ------------------------------------------------------------------------------
 
 void checkDigitalPorts(void) {
 
-	if (PINC & (1 << 0)) return;
-	unsigned char i;
-	
-	for (i = 0; i < 4; i++) {
-		sensors_centers[i] = sensor_values[i];
+	if (button_debounce) {
+		button_debounce--;
+		return;
 	}
 
-}
-
-void calcPos(void) {
+	unsigned char temp;
 	
-
-	x = cos(angles[1]) * cos(angles[0]);
-	y = cos(angles[1]) * sin(angles[0]);
-	z = 0.711 + sin(angles[1]);
-
-//	usb_reply.axes[2] = (signed int)(512. * z);
-//	usb_reply.axes[1] = (signed int)(512. * y)+512;
-//	usb_reply.axes[0] = (signed int)(512. * x)+512;
-	/*
-	x = cos(angles[0]);
-	y = sin(angles[0]);
-	*/
+	temp = (button_state & ~PINA) & 0x0E;
+	button_state = PINA & 0x0E;
+	
+	
+	if (temp & (1 << 1)) {
+	
+		do_hand_rotate ^= (1 << 0);
+		PORTA ^= (1 << 0);		
+		button_debounce = 1000;
+	}
+	
+	if (temp & (1 << 2)) {
+		angle_f = 0.;
+		button_debounce = 1000;
+	}
 	
 }
-
 // ==============================================================================
 // Talk to MLX90316
 // ------------------------------------------------------------------------------
@@ -173,20 +190,24 @@ void checkSPI(void) {
                 		
                 		sensor_values[sensor_idx] = (sensor_values[sensor_idx] * AD_SMOOTHING + temp) / (AD_SMOOTHING + 1); // basic low pass filter
 
-	                	if (usb_reply.raw[sensor_idx] != sensor_values[sensor_idx]) {
+						if (sensor_idx > 0) {
+		                	if (usb_reply.axes[sensor_idx-1] != sensor_values[sensor_idx]) {
 
-		                	usb_reply.raw[sensor_idx] = sensor_values[sensor_idx]; 
-							
-							angles[sensor_idx] = (double)(sensor_values[sensor_idx]) / 16383.;	// 0. - 1.
-							angles[sensor_idx] -= (double)(sensors_centers[sensor_idx]) / 16383.;
-							if (angles[sensor_idx] < 0) angles[sensor_idx] += 1.;			// 0. 1.
-
-							angles[sensor_idx] *= 6.283185307179586;
-
-							if (sensor_idx < 2)	calcPos();
-							
-	    	                dataChanged = 1;	
-	        	        }
+			                	usb_reply.axes[sensor_idx-1] = sensor_values[sensor_idx]; 							
+	    		                dataChanged = 1;	
+	        		        }
+	        		    } else {
+	        		    	if (do_hand_rotate) {
+								if (sensor_values[sensor_idx] != last_rz) {
+									temp = abs (sensor_values[sensor_idx] - last_rz);
+									if (temp < 1000) {
+										angle_f += (sensor_values[sensor_idx] - last_rz) * 4;
+										update_angle();
+									}
+									last_rz = sensor_values[sensor_idx];
+								}
+	        		    	}
+	        		    }
 	        	    }
 	        	    sensor_buffer[sensor_idx] = temp;
                 }
@@ -208,8 +229,8 @@ int main(void)
 	// ------------------------- Initialize Hardware
 	
 	// PORTA: AD Converter
-	DDRA 	= 0x00;		// set all pins to input
-	PORTA 	= 0x00;		// make sure pull-up resistors are turned off
+	DDRA 	= 0x01;		// 1-7:inputs, led on 0
+	PORTA 	= 0x0F;		// pullups on buttons 1..3, turn off LED on PA0
 	adInit();			// init AD converter (see midi_gnusb.c)
 
 	 //PORTB: Serial Communication
@@ -218,9 +239,9 @@ int main(void)
     SPCR = (1<<SPE) | (1<<MSTR) | (1<<SPR1) | (1<<SPR0) | (0<<CPOL) | (1<<CPHA);      //  enable SPI in Master Mode, clk = fcpu/128
     PORTB = 0x0F;       // deselect all angle sensors
     	
-	// PORTC: Buttons
+	// PORTC: Nothing
 	DDRC 	= 0x00;		
-	PORTC 	= 0xFF;		// turn on pull-up resistors
+	PORTC 	= 0x00;		
 	
 	// PORTD: gnusb stuff: USB, status leds, jumper
 	initHIDGnusb();	// (see hid_gnusb.c)
@@ -244,16 +265,7 @@ int main(void)
 			usb_reply_next_data = (unsigned char*)&usb_reply;
 			usb_reply_remain = sizeof(usb_reply);
 			dataChanged = 0;
-			
-			// calculate diffs
-			
-		//	usb_reply.axes[2] = (unsigned int)(z *4000);
-		//	usb_reply.axes[3] = (unsigned int)(angles[2] / 6.283185307179586 * 1024);
-			
-	//		for (i = 0; i < 4; i++) {
-	//			usb_reply.axes[i] = sensor_values[i] - sensors_sent[i];
-	//			sensors_sent[i] = sensor_values[i];
-	//		}
+
 		}
 		
 		// sending data			

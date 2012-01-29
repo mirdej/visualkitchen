@@ -18,11 +18,12 @@
 // USB driver by Objective Development (see http://www.obdev.at/products/avrusb/index.html)
 #include "usbdrv.h"
 // HID Report Descriptor
-//#include "reportDescriptor.c"
+//#include "../reportDescriptor.c"
+
 typedef struct {
-	signed int 		axes[5];
-	unsigned int	pots[3];
-	unsigned int	raw[4];
+	unsigned int	angle;
+	unsigned int 	axes[3];
+	unsigned int	pots[4];
 } reportStruct;
 
 static reportStruct 	usb_reply;
