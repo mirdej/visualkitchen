@@ -20,5 +20,6 @@ function paths(p,home) {
 	setting ("preview_screen_scale",			".666 .5");
 	setting ("preview_screen_spread",			".666 .5");
 	setting ("proj_wind_position",			"1024 600");
+	setting ("proj_type",			"0");
 
 }
