@@ -78,4 +78,4 @@ $(MASTER_DMG): $(WC_DMG) $(addprefix $(SOURCE_DIR)/,$(SOURCE_FILES))
 
 .PHONY: clean
 clean:
-	-rm -rf $(TEMPLATE_DMG) $(MASTER_DMG) $(WC_DMG) VisualKitchen.app proj.three_screens.mxf
+	-rm -rf $(TEMPLATE_DMG) $(MASTER_DMG) $(WC_DMG) VisualKitchen.app

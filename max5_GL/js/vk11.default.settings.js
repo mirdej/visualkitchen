@@ -22,5 +22,6 @@ function paths(p,home) {
 	setting ("proj_wind_position",			"1024 600");
 	setting ("proj_type",			"0");
 	setting ("alt_stream",			"0");
+	setting ("sketcher_mode",			"2");
 
 }
