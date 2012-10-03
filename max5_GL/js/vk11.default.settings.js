@@ -21,5 +21,6 @@ function paths(p,home) {
 	setting ("preview_screen_spread",			".666 .5");
 	setting ("proj_wind_position",			"1024 600");
 	setting ("proj_type",			"0");
+	setting ("alt_stream",			"0");
 
 }

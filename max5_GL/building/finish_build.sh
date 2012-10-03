@@ -3,6 +3,11 @@ mkdir VisualKitchen.app/Contents/Resources/shaders/
 
 cp ../shaders/*.jxs VisualKitchen.app/Contents/Resources/shaders
 
+
+# COPY Projection-patches ----------------------------------------------------------------------------------------------------
+cp ../abstractions/proj.simple.maxpat VisualKitchen.app/Contents/Resources/
+cp proj.three_screens.mxf VisualKitchen.app/Contents/Resources/
+
 # some shared shaders have to be included as well
 cp /Applications/Max5/Cycling\ \'74/jitter-shaders/composite/co.normal.jxs VisualKitchen.app/Contents/Resources/shaders/
 cp /Applications/Max5/Cycling\ \'74/jitter-shaders/color/cc.brcosa.jxs VisualKitchen.app/Contents/Resources/shaders/
