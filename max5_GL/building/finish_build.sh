@@ -5,7 +5,7 @@ cp ../shaders/*.jxs VisualKitchen.app/Contents/Resources/shaders
 
 
 # COPY Projection-patches ----------------------------------------------------------------------------------------------------
-cp ../abstractions/proj.simple.maxpat VisualKitchen.app/Contents/Resources/
+cp proj.circle.mxf VisualKitchen.app/Contents/Resources/
 cp ../abstractions/proj.circle.maxpat VisualKitchen.app/Contents/Resources/
 cp proj.three_screens.mxf VisualKitchen.app/Contents/Resources/
 
