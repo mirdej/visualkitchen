@@ -8,7 +8,7 @@
 // reflected in 'usbconfig.h'!!                          //
 ///////////////////////////////////////////////////////////
 
-PROGMEM char usbDescriptorHidReport[] = {
+PROGMEM const char usbDescriptorHidReport[] = {
 
 	UsagePage2(0x01),				// Generic Desktop
 	Usage2(0x08),					// Multi axis controller
@@ -19,10 +19,10 @@ PROGMEM char usbDescriptorHidReport[] = {
 			LogicalMaximum3(0xFF,0xFF),
 			ReportSize2(16),
 			ReportCount2(4),
-			Usage2(0x35), 					// Rz
-			Usage2(0x32), 					// z-axis
-			Usage2(0x30),					// x-axis
-			Usage2(0x31),					// y-axis
+			Usage2(0x36), 					// Rz (slider)s
+			Usage2(0x36), 					// z-axis (slider)
+			Usage2(0x36),					// x-axis (slider)
+			Usage2(0x36),					// y-axis (slider)
 
 			Input2(Variable),
 
