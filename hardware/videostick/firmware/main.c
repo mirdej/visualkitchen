@@ -68,6 +68,7 @@ static unsigned int		sensor_buffer[4];
 static unsigned int		sensor_values[4];
 
 static unsigned int 	angle;
+static unsigned int 	hand_angle;
 static unsigned int 	last_rz;
 static float 			angle_f;
 static float	 		autorotate;
@@ -82,6 +83,9 @@ void update_angle(void) {
    if (angle_f > 65534) angle_f -= 65535; 
    angle = floor(angle_f);
    angle = angle >> 2;
+   angle += hand_angle;
+   
+   if (angle > 16383) angle-= 16383;
    
    if (usb_reply.angle != angle) {
 	  usb_reply.angle = angle;
@@ -186,30 +190,35 @@ void checkSPI(void) {
  
                 if (temp < 0xfffff) {    // angle cannot be 0xffff
                 	temp = temp >> 2; // bits 0..1 of data doesn't mean anything
-                	if (abs(temp-sensor_buffer[sensor_idx]) < 300 ) {  // remove outliers
                 		
-                		sensor_values[sensor_idx] = (sensor_values[sensor_idx] * AD_SMOOTHING + temp) / (AD_SMOOTHING + 1); // basic low pass filter
 
 						if (sensor_idx > 0) {
+	                		sensor_values[sensor_idx] = (sensor_values[sensor_idx] * AD_SMOOTHING + temp) / (AD_SMOOTHING + 1); // basic low pass filter
+
 		                	if (usb_reply.axes[sensor_idx-1] != sensor_values[sensor_idx]) {
 
 			                	usb_reply.axes[sensor_idx-1] = sensor_values[sensor_idx]; 							
 	    		                dataChanged = 1;	
 	        		        }
 	        		    } else {
-	        		    	if (do_hand_rotate) {
-								if (sensor_values[sensor_idx] != last_rz) {
-									temp = abs (sensor_values[sensor_idx] - last_rz);
-									if (temp < 1000) {
-										angle_f += (sensor_values[sensor_idx] - last_rz) * 4;
-										update_angle();
-									}
-									last_rz = sensor_values[sensor_idx];
-								}
-	        		    	}
-	        		    }
-	        	    }
-	        	    sensor_buffer[sensor_idx] = temp;
+	        		   
+	        		   		signed int diff;
+	        		   		diff = sensor_buffer[0] - temp;
+	        		   		
+	        		   		if (abs(diff) > 0x1fff) {
+	        		   			if (temp > 0x1fff) {
+	        		   				diff = sensor_buffer[0] + (0x3fff-temp);
+	        		   			} else {
+	        		   				diff = - temp - (0x3fff-sensor_buffer[0]);
+	        		   			}
+	        		   		}
+	        		   		
+	        		   		angle_f -= 4 * diff;
+	        		   			
+	        		   		update_angle();
+				       	 }
+				
+			       	 sensor_buffer[sensor_idx] = temp;
                 }
             }
             
