@@ -3,8 +3,8 @@ var MAX_DELAY = 75;
 var planes = new Array();
 var delay_fact = 1;
 
-function master_delay(i) {
-	delay_fact = i/ 15;
+function master_delay(f) {
+	delay_fact = f;
 	for (var i = 1; i < MAX_PLANES; i++) {
 		planes[i].postDelay();
 	}
@@ -12,7 +12,7 @@ function master_delay(i) {
 
 function set_delay(i,d) {
 	i--;
-	planes[i].delay = d/8;
+	planes[i].delay = d;
 	planes[i].postDelay();
 }
 
@@ -69,7 +69,7 @@ function vPlane(n) {
 		outlet(0,'poly~.'+this.index+'::scale',this.scale);
 	}
 	this.postDelay = function() {
-		outlet(0,'poly~.'+this.index+'::delay',this.delay * delay_fact);
+		outlet(0,'poly~.'+this.index+'::delay',parseInt(this.delay * delay_fact));
 	}
 	this.postBlend = function() {
 		outlet(0,'poly~.'+this.index+'::blend',this.blend);
