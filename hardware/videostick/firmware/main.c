@@ -110,12 +110,19 @@ void checkAnalogPorts (void) {
 		
 		if (ad_idx == 0) {
 					signed int a;
+					float f;
+					
 					a = ad_values[ad_idx];
 					if (a < 500) a -= 500;
 					else if (a > 524) a -= 524;
 					else a = 0;
 					
-					angle_f += ( (float) a / 10.);
+					f = (float) a;
+					f /= 500;
+					f = f * f * f;
+					f *= 50;
+					
+					angle_f += f;
 
 					update_angle();
 					}
