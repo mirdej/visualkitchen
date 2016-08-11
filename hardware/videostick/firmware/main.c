@@ -208,21 +208,22 @@ void checkSPI(void) {
 	    		                dataChanged = 1;	
 	        		        }
 	        		    } else {
-	        		   
-	        		   		signed int diff;
-	        		   		diff = sensor_buffer[0] - temp;
-	        		   		
-	        		   		if (abs(diff) > 0x1fff) {
-	        		   			if (temp > 0x1fff) {
-	        		   				diff = sensor_buffer[0] + (0x3fff-temp);
-	        		   			} else {
-	        		   				diff = - temp - (0x3fff-sensor_buffer[0]);
-	        		   			}
+	        		   		if (do_hand_rotate) {
+								signed int diff;
+								diff = sensor_buffer[0] - temp;
+							
+								if (abs(diff) > 0x1fff) {
+									if (temp > 0x1fff) {
+										diff = sensor_buffer[0] + (0x3fff-temp);
+									} else {
+										diff = - temp - (0x3fff-sensor_buffer[0]);
+									}
+								}
+							
+								angle_f -= 4 * diff;
+								
+								update_angle();
 	        		   		}
-	        		   		
-	        		   		angle_f -= 4 * diff;
-	        		   			
-	        		   		update_angle();
 				       	 }
 				
 			       	 sensor_buffer[sensor_idx] = temp;
